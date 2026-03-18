@@ -85,6 +85,7 @@ end;
 function InitializeSetup: Boolean;
 var
   Msg: String;
+  ResultCode: Integer;
 begin
   Result := True;
 
@@ -114,6 +115,3 @@ begin
     Result := False;
   end;
 end;
-
-var
-  ResultCode: Integer;
