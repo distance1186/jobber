@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobber Setup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 2rem; }
+  .container { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #38bdf8; }
+  h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; }
+  .step { display: none; background: #1e293b; border-radius: 12px; padding: 2rem; margin-top: 1.5rem; }
+  .step.active { display: block; }
+  .badge { display: inline-block; background: #334155; padding: 0.25rem 0.75rem;
+           border-radius: 6px; font-size: 0.85rem; margin: 0.25rem; }
+  .badge.gpu { background: #065f46; color: #6ee7b7; }
+  .hw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .hw-item { background: #334155; padding: 1rem; border-radius: 8px; }
+  .hw-item .label { font-size: 0.8rem; color: #94a3b8; }
+  .hw-item .value { font-size: 1.5rem; font-weight: bold; color: #f1f5f9; }
+  label { display: block; margin-top: 1rem; font-size: 0.9rem; color: #94a3b8; }
+  input, select { width: 100%; padding: 0.75rem; margin-top: 0.25rem; border-radius: 8px;
+                  border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font-size: 1rem; }
+  input:focus, select:focus { outline: none; border-color: #38bdf8; }
+  .model-card { background: #334155; border-radius: 8px; padding: 1rem; margin: 0.5rem 0;
+                cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+  .model-card.selected { border-color: #38bdf8; }
+  .model-card:hover { border-color: #64748b; }
+  .model-card .name { font-weight: bold; color: #f1f5f9; }
+  .model-card .meta { font-size: 0.85rem; color: #94a3b8; }
+  .model-card .rec { font-size: 0.75rem; background: #38bdf8; color: #0f172a;
+                     padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: bold; }
+  .warning { background: #451a03; border: 1px solid #92400e; padding: 0.75rem;
+             border-radius: 8px; margin: 1rem 0; color: #fbbf24; font-size: 0.9rem; }
+  .btn { padding: 0.75rem 2rem; border: none; border-radius: 8px; font-size: 1rem;
+         cursor: pointer; font-weight: 600; transition: background 0.2s; }
+  .btn-primary { background: #38bdf8; color: #0f172a; }
+  .btn-primary:hover { background: #7dd3fc; }
+  .btn-secondary { background: #334155; color: #e2e8f0; margin-right: 0.5rem; }
+  .btn-row { display: flex; justify-content: flex-end; margin-top: 1.5rem; gap: 0.5rem; }
+  .status { text-align: center; padding: 2rem; }
+  .status .spinner { font-size: 2rem; animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .success { color: #4ade80; font-size: 1.5rem; }
+  .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .step-dot { width: 12px; height: 12px; border-radius: 50%; background: #334155; }
+  .step-dot.active { background: #38bdf8; }
+  .step-dot.done { background: #4ade80; }
+  small { color: #64748b; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ Jobber Setup</h1>
+  <h2>Job Aggregation & Tracking System</h2>
+  <div class="step-indicator" id="dots"></div>
+
+  <!-- Step 1: Hardware -->
+  <div class="step active" id="step1">
+    <h2>System Hardware</h2>
+    <div class="hw-grid" id="hw-grid"></div>
+    <div id="gpu-info"></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="goStep(2)">Next →</button></div>
+  </div>
+
+  <!-- Step 2: Model Selection -->
+  <div class="step" id="step2">
+    <h2>Select LLM Model</h2>
+    <p style="margin-bottom:1rem;color:#94a3b8">Choose a model based on your hardware. The recommended option is pre-selected.</p>
+    <div id="model-warning"></div>
+    <div id="model-list"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Configuration -->
+  <div class="step" id="step3">
+    <h2>Configuration</h2>
+    <label>Database Password <small>(required)</small>
+      <input type="password" id="pg_pass" placeholder="Strong password for PostgreSQL" value="">
+    </label>
+    <label>LinkedIn li_at Cookie <small>(optional — needed for LinkedIn scraping)</small>
+      <input type="text" id="li_at" placeholder="Paste from browser DevTools">
+    </label>
+    <label>Notification URL <small>(optional — Apprise format)</small>
+      <input type="text" id="notify_url" placeholder="e.g. ntfy://host/topic">
+    </label>
+    <label>Minimum Score for Notifications
+      <select id="notify_score">
+        <option value="6">6</option>
+        <option value="7" selected>7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+    </label>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Review →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Review & Install -->
+  <div class="step" id="step4">
+    <h2>Review & Install</h2>
+    <div id="review-summary" style="background:#334155;padding:1rem;border-radius:8px;font-family:monospace;font-size:0.85rem;line-height:1.6"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-primary" id="install-btn" onclick="doInstall()">🚀 Install & Start</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Installing -->
+  <div class="step" id="step5">
+    <div class="status" id="install-status">
+      <div class="spinner">⚙️</div>
+      <p style="margin-top:1rem">Saving configuration and starting Docker stack...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let hw = {}, rec = {}, allModels = [], selectedModel = '';
+const totalSteps = 5;
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  updateDots(n);
+  if (n === 4) showReview();
+}
+
+function updateDots(current) {
+  const dots = document.getElementById('dots');
+  dots.innerHTML = '';
+  for (let i = 1; i <= totalSteps; i++) {
+    const d = document.createElement('div');
+    d.className = 'step-dot' + (i === current ? ' active' : i < current ? ' done' : '');
+    dots.appendChild(d);
+  }
+}
+
+async function init() {
+  updateDots(1);
+  try {
+    const resp = await fetch('/api/hardware');
+    const data = await resp.json();
+    hw = data.hardware;
+    rec = data.recommendation;
+    allModels = data.all_models;
+    selectedModel = rec.primary.name;
+    renderHardware();
+    renderModels();
+  } catch (e) {
+    document.getElementById('hw-grid').innerHTML = '<p style="color:#ef4444">Failed to detect hardware: ' + e + '</p>';
+  }
+}
+
+function renderHardware() {
+  const grid = document.getElementById('hw-grid');
+  grid.innerHTML = `
+    <div class="hw-item"><div class="label">RAM</div><div class="value">${hw.total_ram_gb} GB</div></div>
+    <div class="hw-item"><div class="label">CPU</div><div class="value">${hw.cpu_cores} cores</div></div>
+    <div class="hw-item"><div class="label">Disk Free</div><div class="value">${hw.free_disk_gb} GB</div></div>
+    <div class="hw-item"><div class="label">OS</div><div class="value">${hw.os}</div></div>
+  `;
+  const gpuDiv = document.getElementById('gpu-info');
+  if (hw.gpu_name) {
+    gpuDiv.innerHTML = `<span class="badge gpu">🎮 ${hw.gpu_name} (${hw.gpu_vram_mb} MB VRAM)</span>`;
+  } else {
+    gpuDiv.innerHTML = '<span class="badge">No GPU detected — CPU inference only</span>';
+  }
+}
+
+function renderModels() {
+  const list = document.getElementById('model-list');
+  list.innerHTML = '';
+  if (rec.warning) {
+    document.getElementById('model-warning').innerHTML = `<div class="warning">⚠️ ${rec.warning}</div>`;
+  }
+  allModels.forEach(m => {
+    const isRec = m.name === rec.primary.name;
+    const isSel = m.name === selectedModel;
+    const card = document.createElement('div');
+    card.className = 'model-card' + (isSel ? ' selected' : '');
+    card.onclick = () => { selectedModel = m.name; renderModels(); };
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="name">${m.display_name} <small>(${m.params})</small></span>
+        ${isRec ? '<span class="rec">RECOMMENDED</span>' : ''}
+      </div>
+      <div class="meta" style="margin-top:0.5rem">${m.note}</div>
+      <div class="meta">Min RAM: ${m.ram_gb} GB • Tier: ${m.tier}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function showReview() {
+  const s = document.getElementById('review-summary');
+  const model = allModels.find(m => m.name === selectedModel);
+  s.innerHTML = `
+    <b>LLM Model:</b> ${model ? model.display_name : selectedModel} (${selectedModel})<br>
+    <b>Database Password:</b> ${'•'.repeat(document.getElementById('pg_pass').value.length || 0) || '<span style="color:#ef4444">NOT SET</span>'}<br>
+    <b>LinkedIn Cookie:</b> ${document.getElementById('li_at').value ? '✓ Configured' : 'Not set (LinkedIn scraping disabled)'}<br>
+    <b>Notifications:</b> ${document.getElementById('notify_url').value || 'Disabled'}<br>
+    <b>Min Score:</b> ${document.getElementById('notify_score').value}/10<br>
+    <br>
+    <b>Hardware:</b> ${hw.total_ram_gb} GB RAM, ${hw.cpu_cores} cores${hw.gpu_name ? ', ' + hw.gpu_name : ''}<br>
+    <b>Disk:</b> ${hw.free_disk_gb} GB free
+  `;
+}
+
+async function doInstall() {
+  const pgPass = document.getElementById('pg_pass').value;
+  if (!pgPass) { alert('Database password is required!'); return; }
+
+  goStep(5);
+  const statusDiv = document.getElementById('install-status');
+
+  try {
+    // Save config
+    statusDiv.innerHTML = '<div class="spinner">⚙️</div><p style="margin-top:1rem">Saving configuration...</p>';
+    const saveResp = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postgres_password: pgPass,
+        ollama_model: selectedModel,
+        li_at_cookie: document.getElementById('li_at').value,
+        notify_urls: document.getElementById('notify_url').value,
+        notify_min_score: document.getElementById('notify_score').value,
+      })
+    });
+    if (!saveResp.ok) throw new Error(await saveResp.text());
+
+    // Start stack
+    statusDiv.innerHTML = '<div class="spinner">⚙️</div><p style="margin-top:1rem">Starting Docker Compose stack... (this may take a minute)</p>';
+    const startResp = await fetch('/api/start', { method: 'POST' });
+    if (!startResp.ok) throw new Error(await startResp.text());
+
+    statusDiv.innerHTML = `
+      <div class="success">✅ Jobber is running!</div>
+      <p style="margin-top:1rem">Dashboard: <a href="http://localhost:3000" style="color:#38bdf8">http://localhost:3000</a></p>
+      <p>Ollama Model: <code>${selectedModel}</code></p>
+      <p style="margin-top:1rem;color:#94a3b8">Pull your LLM model if not already downloaded:</p>
+      <code style="background:#334155;padding:0.5rem;border-radius:4px;display:block;margin-top:0.5rem">
+        docker exec jobber-ollama ollama pull ${selectedModel}
+      </code>
+      <div style="margin-top:1.5rem">
+        <button class="btn btn-primary" onclick="fetch('/api/done',{method:'POST'});window.close();">Close Wizard</button>
+      </div>
+    `;
+  } catch (e) {
+    statusDiv.innerHTML = `
+      <div style="color:#ef4444;font-size:1.25rem">❌ Installation Failed</div>
+      <pre style="background:#334155;padding:1rem;border-radius:8px;margin-top:1rem;overflow:auto;font-size:0.8rem;color:#fbbf24">${e.message || e}</pre>
+      <div style="margin-top:1rem">
+        <button class="btn btn-secondary" onclick="goStep(3)">← Back to Config</button>
+      </div>
+    `;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
