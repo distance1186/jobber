@@ -1,0 +1,27 @@
+# Jobber Agent Configuration
+# Edit search queries to match your job search criteria.
+
+sources:
+  linkedin:
+    enabled: true
+    search_queries:
+      - keywords: "Senior Systems Administrator"
+        location: "United States"
+        remote_only: true
+      - keywords: "Linux Administrator DevOps"
+        location: "United States"
+        remote_only: false
+
+  dice:
+    enabled: true
+    search_queries:
+      - keywords: "systems administrator linux"
+        radius_miles: 50
+        remote_only: true
+      - keywords: "senior sysadmin"
+        radius_miles: 50
+        remote_only: false
+
+llm:
+  min_relevance_score_for_notification: 7
+  job_role_context: "Senior Systems Administrator with 20+ years Linux/Windows experience"

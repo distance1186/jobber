@@ -1,0 +1,93 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jobber-ollama
+    restart: unless-stopped
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - jobber-net
+    # GPU support (uncomment if NVIDIA GPU + Container Toolkit installed):
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:11434/api/tags']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: jobber-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jobtracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-jobtracking}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - jobber-net
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-jobtracker}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: jobber-agent
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-jobtracker}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-jobtracking}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # When using containerized Ollama, uncomment:
+    #   ollama:
+    #     condition: service_healthy
+    volumes:
+      - ./cron/crontab:/etc/cron.d/job-tracker:ro
+      - agent_logs:/var/log/job-tracker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - jobber-net
+
+  dashboard:
+    image: ghcr.io/distance1186/jobsync:latest
+    container_name: jobber-dashboard
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-jobtracker}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-jobtracking}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-default-dev-secret-change-me}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - jobber-net
+
+volumes:
+  ollama_data:
+  postgres_data:
+  agent_logs:
+
+networks:
+  jobber-net:
+    driver: bridge
