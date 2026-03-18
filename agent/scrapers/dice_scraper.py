@@ -11,14 +11,19 @@ logger = logging.getLogger(__name__)
 DICE_API_URL = "https://job-search-api.svc.dhigroupinc.com/v1/dice/jobs/search"
 
 
+# Dice's frontend API key — used by their web app, publicly visible in browser DevTools.
+DICE_API_KEY = "1YAt0R9wBg4WfsF9VB2778F5CHLAPMVW3WAZcKd8"
+
+
 class DiceScraper:
     """Scrapes job listings from Dice.com via their public JSON API."""
 
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
-            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0",
+            "Accept": "application/json, text/plain, */*",
+            "x-api-key": DICE_API_KEY,
         })
 
     def scrape(self, queries: list[dict], max_results: int = 50) -> list[dict]:
