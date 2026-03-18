@@ -1,0 +1,16 @@
+Package: jobber
+Version: 0.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: docker.io (>= 20.10), docker-compose-plugin (>= 2.0)
+Recommends: nvidia-container-toolkit
+Maintainer: distance1186 <distance1186@users.noreply.github.com>
+Homepage: https://github.com/distance1186/jobber
+Description: Self-hosted job aggregation and tracking system
+ Jobber is a self-hosted job aggregation and tracking system powered by a
+ local LLM agent. It scrapes job boards, classifies listings using AI, and
+ provides a web dashboard for tracking applications.
+ .
+ This package installs the jobber-setup CLI and project files. After
+ installation, run 'jobber-setup install' to complete the guided setup.

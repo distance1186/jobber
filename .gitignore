@@ -35,3 +35,7 @@ Thumbs.db
 
 # Installer output
 installer/windows/Output/
+
+# Packaging build artifacts
+packaging/build/
+dist/

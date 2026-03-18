@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        echo ""
+        echo "======================================"
+        echo "  Jobber installed successfully!"
+        echo "======================================"
+        echo ""
+        echo "  Binary:  /usr/local/bin/jobber-setup"
+        echo "  Files:   /opt/jobber/"
+        echo ""
+        echo "  To complete setup, run:"
+        echo ""
+        echo "    jobber-setup install --dir /opt/jobber"
+        echo ""
+        echo "  This will:"
+        echo "    1. Check prerequisites (Docker, Compose)"
+        echo "    2. Detect your hardware"
+        echo "    3. Open a config wizard in your browser"
+        echo "    4. Start the Jobber stack"
+        echo ""
+
+        # Ensure docker group exists and hint about it
+        if ! groups "$SUDO_USER" 2>/dev/null | grep -q docker; then
+            echo "  NOTE: You may need to add your user to the docker group:"
+            echo "    sudo usermod -aG docker $SUDO_USER"
+            echo "    newgrp docker"
+            echo ""
+        fi
+        ;;
+esac
+
+exit 0
