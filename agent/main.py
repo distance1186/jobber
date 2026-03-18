@@ -7,14 +7,12 @@ persists to database, and sends notifications for high-relevance matches.
 import json
 import logging
 import os
-import sys
 from datetime import datetime, timezone
 
 import yaml
 from dotenv import load_dotenv
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from db.models import Job, get_engine, get_session
+from db.models import Job, get_session
 from notifications import send_notification
 from scrapers.dice_scraper import DiceScraper
 from scrapers.linkedin_scraper import LinkedInScraper

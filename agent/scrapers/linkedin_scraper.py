@@ -1,10 +1,7 @@
 """LinkedIn job scraper using linkedin-jobs-scraper library."""
 
-import json
 import logging
 import os
-import time
-from typing import Optional
 
 from linkedin_jobs_scraper import LinkedinScraper
 from linkedin_jobs_scraper.events import EventData, Events

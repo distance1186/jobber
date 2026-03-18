@@ -1,8 +1,6 @@
 """Dice.com job scraper using their public REST API."""
 
 import logging
-from typing import Optional
-from urllib.parse import urlencode
 
 import requests
 
