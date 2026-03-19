@@ -18,7 +18,7 @@ AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
-DefaultDirName={autopf}\Jobber
+DefaultDirName={localappdata}\Jobber
 DefaultGroupName={#MyAppName}
 LicenseFile=..\..\LICENSE
 OutputBaseFilename=jobber-setup-windows-amd64
@@ -28,7 +28,7 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 SetupIconFile=compiler:SetupClassicIcon.ico
 
 [Languages]
