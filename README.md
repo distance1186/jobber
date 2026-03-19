@@ -17,6 +17,7 @@ Everything runs locally — no cloud APIs required.
 - Docker & Docker Compose
 - NVIDIA GPU recommended (works on CPU, just slower)
 - 8 GB RAM minimum, 16+ GB recommended
+- **Firefox is the preferred browser** — the LinkedIn cookie setup script can auto-extract your session cookie from Firefox with zero manual steps
 
 ## Quick Start
 
@@ -60,6 +61,22 @@ Set your model in `.env` via the `OLLAMA_MODEL` variable.
 │  Ollama (LLM)  │  Postgres  │  Agent  │  Dashboard │
 │  :11434        │  internal  │  cron   │  :3000     │
 └──────────────────────────────────────────────────┘
+```
+
+## LinkedIn Cookie Setup
+
+The LinkedIn scraper requires an authenticated session cookie (`li_at`). A helper script can extract it automatically from Firefox:
+
+```bash
+python scripts/get-linkedin-cookie.py
+```
+
+If you use Firefox and are logged into LinkedIn, the cookie is detected and saved to `.env` automatically. Chrome/Edge users will be guided through a quick manual copy from DevTools.
+
+After updating the cookie, restart the agent:
+
+```bash
+docker compose up -d agent
 ```
 
 ## Configuration
