@@ -5,7 +5,11 @@ import os
 
 from linkedin_jobs_scraper import LinkedinScraper
 from linkedin_jobs_scraper.events import EventData, Events
-from linkedin_jobs_scraper.filters import RelevanceFilters, TimeFilters, TypeFilters
+from linkedin_jobs_scraper.filters import (
+    OnSiteOrRemoteFilters,
+    RelevanceFilters,
+    TimeFilters,
+)
 from linkedin_jobs_scraper.query import Query, QueryFilters, QueryOptions
 
 logger = logging.getLogger(__name__)
@@ -67,9 +71,11 @@ class LinkedInScraper:
             page_load_timeout=40,
         )
 
-        scraper.on(Events.DATA, self._on_data)
-        scraper.on(Events.ERROR, self._on_error)
-        scraper.on(Events.END, self._on_end)
+        # Library checks isinstance(cb, FunctionType) which rejects bound methods.
+        # Wrap in lambdas to work around this.
+        scraper.on(Events.DATA, lambda data: self._on_data(data))
+        scraper.on(Events.ERROR, lambda error: self._on_error(error))
+        scraper.on(Events.END, lambda: self._on_end())
 
         linkedin_queries = []
         for q in queries:
@@ -78,7 +84,7 @@ class LinkedInScraper:
                 time=TimeFilters.WEEK,
             )
             if q.get("remote_only"):
-                filters.type = [TypeFilters.REMOTE]
+                filters.on_site_or_remote = [OnSiteOrRemoteFilters.REMOTE]
 
             linkedin_queries.append(
                 Query(

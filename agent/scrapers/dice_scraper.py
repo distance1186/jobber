@@ -87,7 +87,7 @@ class DiceScraper:
                 "company": item.get("companyName", ""),
                 "location": item.get("jobLocation", {}).get("displayName", ""),
                 "remote": item.get("isRemote", False),
-                "url": f"https://www.dice.com/job-detail/{item.get('id', '')}",
+                "url": item.get("detailsPageUrl", f"https://www.dice.com/job-detail/{item.get('id', '')}"),
                 "description": item.get("jobDescription", ""),
                 "date_posted": item.get("postedDate", ""),
                 "raw_data": item,

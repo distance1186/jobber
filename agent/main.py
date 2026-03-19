@@ -167,7 +167,7 @@ def persist_jobs(jobs: list[dict]) -> dict:
                     llm_summary=job.get("llm_summary"),
                     relevance_score=job.get("relevance_score", 0),
                     skills=job.get("skills", []),
-                    date_posted=job.get("date_posted"),
+                    date_posted=job.get("date_posted") or None,
                     raw_data=job.get("raw_data"),
                     status="new",
                 )
